@@ -6,6 +6,9 @@ from rest_framework import status
 from .models import Webhook
 from .serializers import WebhookSerializer
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 # TradingView webhook IPs (disabled for testing)
 # TRADINGVIEW_IPS = {
@@ -42,12 +45,22 @@ class WebhookView(APIView):
         #         status=status.HTTP_403_FORBIDDEN
         #     )
 
-        # Handle text input and convert to JSON
-        if request.content_type == 'text/plain':
-            text_content = request.body.decode('utf-8')
-            json_payload = {"text": text_content}
-        else:
-            json_payload = request.data
+        # Log the content type and body for debugging
+        logger.warning(f"Webhook received from {ip} with Content-Type: {request.content_type}")
+        logger.warning(f"Raw body: {request.body}")
+
+        try:
+            if request.content_type == 'text/plain':
+                text_content = request.body.decode('utf-8')
+                json_payload = {"text": text_content}
+            elif request.content_type == 'application/json':
+                json_payload = request.data
+            else:
+                # Accept any content type for debugging
+                text_content = request.body.decode('utf-8')
+                json_payload = {"raw": text_content, "content_type": request.content_type}
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
 
         # Create webhook data
         webhook_data = {
