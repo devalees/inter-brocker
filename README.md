@@ -33,18 +33,15 @@ The application will be available at http://127.0.0.1:8000/
 
 The application provides a webhook endpoint to receive and store incoming webhook data from TradingView. It supports both JSON and plain text input.
 
-### Development Environment
-In development, the webhook endpoint is available at:
+### Webhook URLs
+For TradingView webhook configuration, use these URLs (no port numbers needed):
+
 ```
-POST http://127.0.0.1:8000/api/webhook/
+HTTP:  http://ec2-16-170-148-120.eu-north-1.compute.amazonaws.com/api/webhook/
+HTTPS: https://ec2-16-170-148-120.eu-north-1.compute.amazonaws.com/api/webhook/
 ```
 
-### Production Environment (EC2)
-In production, the webhook endpoint will be available on standard ports:
-```
-POST http://your-ec2-ip/api/webhook/     # Port 80
-POST https://your-ec2-ip/api/webhook/    # Port 443 (after SSL setup)
-```
+Note: TradingView only accepts URLs with default ports (80 for HTTP, 443 for HTTPS). Do not include port numbers in the webhook URL.
 
 ### TradingView Webhook Requirements
 - Only accepts requests from TradingView IPs:
@@ -53,7 +50,7 @@ POST https://your-ec2-ip/api/webhook/    # Port 443 (after SSL setup)
   - 54.218.53.128
   - 52.32.178.7
 - Requests must be processed within 3 seconds
-- Only ports 80 and 443 are supported
+- Only default ports are supported (80 for HTTP, 443 for HTTPS)
 
 ### Request Format
 The endpoint accepts two types of content:
@@ -68,23 +65,16 @@ The endpoint accepts two types of content:
 
 ### Example Requests
 
-#### Text-based Webhook (Development)
+#### Text-based Webhook
 ```bash
-curl -X POST http://127.0.0.1:8000/api/webhook/ \
+curl -X POST http://ec2-16-170-148-120.eu-north-1.compute.amazonaws.com/api/webhook/ \
   -H "Content-Type: text/plain" \
   -d "price is 2000"
 ```
 
-#### Text-based Webhook (Production)
+#### JSON Webhook
 ```bash
-curl -X POST http://your-ec2-ip/api/webhook/ \
-  -H "Content-Type: text/plain" \
-  -d "price is 2000"
-```
-
-#### JSON Webhook (Development)
-```bash
-curl -X POST http://127.0.0.1:8000/api/webhook/ \
+curl -X POST http://ec2-16-170-148-120.eu-north-1.compute.amazonaws.com/api/webhook/ \
   -H "Content-Type: application/json" \
   -d '{
     "text": "BTCUSD Greater Than 9000"
@@ -108,6 +98,6 @@ For production deployment on EC2:
 1. The webhook endpoint will be available on standard ports (80/443)
 2. Use the provided `deploy.sh` script for deployment
 3. Configure your webhook provider to send requests to:
-   - HTTP: `http://your-ec2-ip/api/webhook/` (Port 80)
-   - HTTPS: `https://your-ec2-ip/api/webhook/` (Port 443, after SSL setup)
+   - HTTP: `http://ec2-16-170-148-120.eu-north-1.compute.amazonaws.com/api/webhook/` (Port 80)
+   - HTTPS: `https://ec2-16-170-148-120.eu-north-1.compute.amazonaws.com/api/webhook/` (Port 443)
 4. Nginx will handle the incoming requests on ports 80/443 and forward them to Django running internally on port 8000 
