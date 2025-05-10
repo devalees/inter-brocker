@@ -33,9 +33,17 @@ The application will be available at http://127.0.0.1:8000/
 
 The application provides a webhook endpoint to receive and store incoming webhook data.
 
-### Endpoint
+### Development Environment
+In development, the webhook endpoint is available at:
 ```
-POST /api/webhook/
+POST http://127.0.0.1:8000/api/webhook/
+```
+
+### Production Environment (EC2)
+In production, the webhook endpoint will be available on standard ports:
+```
+POST http://your-ec2-ip/api/webhook/     # Port 80
+POST https://your-ec2-ip/api/webhook/    # Port 443 (after SSL setup)
 ```
 
 ### Request Format
@@ -43,9 +51,22 @@ POST /api/webhook/
 - Method: POST
 - Body: Any valid JSON payload
 
-### Example Request
+### Example Request (Development)
 ```bash
 curl -X POST http://127.0.0.1:8000/api/webhook/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event": "test_event",
+    "data": {
+      "key": "value",
+      "timestamp": "2024-05-10T12:00:00Z"
+    }
+  }'
+```
+
+### Example Request (Production)
+```bash
+curl -X POST http://your-ec2-ip/api/webhook/ \
   -H "Content-Type: application/json" \
   -d '{
     "event": "test_event",
@@ -70,8 +91,9 @@ All received webhooks can be viewed in the Django admin interface at `/admin/bro
 
 ### Production Deployment
 For production deployment on EC2:
-1. The webhook endpoint will be available on port 80/443
+1. The webhook endpoint will be available on standard ports (80/443)
 2. Use the provided `deploy.sh` script for deployment
 3. Configure your webhook provider to send requests to:
-   - HTTP: `http://your-ec2-ip/api/webhook/`
-   - HTTPS: `https://your-ec2-ip/api/webhook/` (after SSL setup) 
+   - HTTP: `http://your-ec2-ip/api/webhook/` (Port 80)
+   - HTTPS: `https://your-ec2-ip/api/webhook/` (Port 443, after SSL setup)
+4. Nginx will handle the incoming requests on ports 80/443 and forward them to Django running internally on port 8000 
