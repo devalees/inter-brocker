@@ -1,0 +1,13 @@
+[Unit]
+Description=Inter Broker Gunicorn Service
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/inter-brocker
+Environment="PATH=/home/ubuntu/inter-brocker/venv/bin"
+ExecStart=/home/ubuntu/inter-brocker/venv/bin/gunicorn -c gunicorn_config.py inter_broker.wsgi:application
+
+[Install]
+WantedBy=multi-user.target 
