@@ -7,17 +7,17 @@ from .models import Webhook
 from .serializers import WebhookSerializer
 import time
 
-# TradingView webhook IPs and local testing IPs
-TRADINGVIEW_IPS = {
-    '52.89.214.238',
-    '34.212.75.30',
-    '54.218.53.128',
-    '52.32.178.7',
-    '127.0.0.1',
-    'localhost',
-    '172.31.31.33',  # Your EC2 instance private IP
-    '16.170.148.120'  # Your EC2 instance public IP
-}
+# TradingView webhook IPs (disabled for testing)
+# TRADINGVIEW_IPS = {
+#     '52.89.214.238',
+#     '34.212.75.30',
+#     '54.218.53.128',
+#     '52.32.178.7',
+#     '127.0.0.1',
+#     'localhost',
+#     '172.31.31.33',  # Your EC2 instance private IP
+#     '16.170.148.120'  # Your EC2 instance public IP
+# }
 
 # Create your views here.
 
@@ -35,12 +35,12 @@ class WebhookView(APIView):
         else:
             ip = request.META.get('REMOTE_ADDR')
 
-        # Check if IP is from TradingView or local testing
-        if ip not in TRADINGVIEW_IPS:
-            return Response(
-                {"error": "Unauthorized IP address", "received_ip": ip},
-                status=status.HTTP_403_FORBIDDEN
-            )
+        # IP check disabled for testing
+        # if ip not in TRADINGVIEW_IPS:
+        #     return Response(
+        #         {"error": "Unauthorized IP address", "received_ip": ip},
+        #         status=status.HTTP_403_FORBIDDEN
+        #     )
 
         # Handle text input and convert to JSON
         if request.content_type == 'text/plain':
