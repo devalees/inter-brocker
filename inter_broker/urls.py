@@ -21,3 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('broker.urls')),
 ]
+# Add this at the end of the file
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
