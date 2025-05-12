@@ -1,0 +1,19 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    <li>
+        <a href="{% url 'admin:ib_gateway_live_orders' %}" class="button">
+            View Live Orders from IB Gateway
+        </a>
+    </li>
+    <li>
+        <form action="{% url 'admin:ib_gateway_fetch_all_orders' %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" class="button" style="background-color: #447e9b; color: white;">
+                Fetch All Orders from IB Gateway
+            </button>
+        </form>
+    </li>
+{% endblock %} 

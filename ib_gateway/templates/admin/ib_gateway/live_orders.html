@@ -1,0 +1,228 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style type="text/css">
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    .orders-table th, .orders-table td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: left;
+    }
+    .orders-table th {
+        background-color: #f2f2f2;
+    }
+    .orders-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    .refresh-button {
+        margin: 20px 0;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin: 20px 0;
+    }
+    .action-buttons button,
+    .action-buttons a {
+        padding: 8px 15px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .refresh-btn {
+        background-color: #28a745;
+        color: white;
+    }
+    .sync-btn {
+        background-color: #007bff;
+        color: white;
+    }
+    .back-btn {
+        background-color: #6c757d;
+        color: white;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: inline-block;
+        color: white;
+        font-weight: bold;
+    }
+    .status-filled {
+        background-color: #28a745;
+    }
+    .status-submitted {
+        background-color: #007bff;
+    }
+    .status-cancelled {
+        background-color: #dc3545;
+    }
+    .status-pending {
+        background-color: #ffc107;
+        color: #212529;
+    }
+    .status-rejected {
+        background-color: #dc3545;
+    }
+    .section-header {
+        margin-top: 30px;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 10px;
+    }
+    .no-data {
+        margin: 20px 0;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label='ib_gateway' %}">IB Gateway</a>
+    &rsaquo; <a href="{% url 'admin:ib_gateway_order_changelist' %}">Orders</a>
+    &rsaquo; {% trans 'Live Orders from IB Gateway' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Live Orders from IB Gateway</h1>
+    
+    <div class="action-buttons">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="refresh">
+            <button type="submit" class="refresh-btn">Refresh Data from IB Gateway</button>
+        </form>
+        
+        <form action="{% url 'admin:ib_gateway_fetch_all_orders' %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" class="sync-btn">Sync All Orders with Database</button>
+        </form>
+        
+        <a href="{% url 'admin:ib_gateway_order_changelist' %}" class="back-btn">Back to Orders</a>
+    </div>
+    
+    {% if refresh_time %}
+    <p>Last refreshed: {{ refresh_time }}</p>
+    {% endif %}
+    
+    <h2 class="section-header">Open Orders</h2>
+    {% if orders %}
+    <table class="orders-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Symbol</th>
+                <th>Action</th>
+                <th>Quantity</th>
+                <th>Order Type</th>
+                <th>Status</th>
+                <th>Filled</th>
+                <th>Remaining</th>
+                <th>Avg Fill Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.orderId }}</td>
+                <td>{{ order.symbol }}</td>
+                <td>{{ order.action }}</td>
+                <td>{{ order.quantity }}</td>
+                <td>{{ order.orderType }}</td>
+                <td>
+                    <span class="status-badge status-{{ order.status|lower }}">
+                        {{ order.status }}
+                    </span>
+                </td>
+                <td>{{ order.filled }}</td>
+                <td>{{ order.remaining }}</td>
+                <td>{{ order.avgFillPrice }}</td>
+                <td>
+                    <a href="{% url 'admin:ib_gateway_order_changelist' %}?order_id={{ order.orderId }}" 
+                       class="button" style="padding: 2px 5px;">
+                        View in DB
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="no-data">
+        <p>No open orders found in IB Gateway. Click "Refresh Data" to query IB Gateway for current orders.</p>
+    </div>
+    {% endif %}
+    
+    <h2 class="section-header">Recent Executions</h2>
+    {% if executions %}
+    <table class="orders-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Exec ID</th>
+                <th>Time</th>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Shares</th>
+                <th>Price</th>
+                <th>Exchange</th>
+                <th>Account</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for exec in executions %}
+            <tr>
+                <td>{{ exec.orderId }}</td>
+                <td>{{ exec.execId }}</td>
+                <td>{{ exec.time }}</td>
+                <td>{{ exec.symbol }}</td>
+                <td>{{ exec.side }}</td>
+                <td>{{ exec.shares }}</td>
+                <td>${{ exec.price }}</td>
+                <td>{{ exec.exchange }}</td>
+                <td>{{ exec.account }}</td>
+                <td>
+                    <a href="{% url 'admin:ib_gateway_order_changelist' %}?order_id={{ exec.orderId }}" 
+                       class="button" style="padding: 2px 5px;">
+                        View in DB
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="no-data">
+        <p>No executions found in IB Gateway. Click "Refresh Data" to query IB Gateway for recent executions.</p>
+    </div>
+    {% endif %}
+    
+    <div class="module">
+        <h2>Working with IB Gateway Orders</h2>
+        <p>
+            <strong>Use the "Refresh Data" button</strong> to view the current state of orders in IB Gateway without affecting your database.
+        </p>
+        <p>
+            <strong>Use the "Sync All Orders with Database" button</strong> to update your database with all orders from IB Gateway, 
+            including their current status, filled quantities, and execution prices.
+        </p>
+    </div>
+</div>
+{% endblock %} 
